@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Agora Web Sample</title>
+<link rel="stylesheet" href="common/vendor/bootstrap.min.css">
+<script src="common/AgoraRTCSDK-2.5.0.js"></script>
+<script src="common/vendor/jquery.js"></script>
+<script src="common/config.js"></script>
+</head>
+<body>
+  <button onclick="startAudioMixing();">AudioMixing</button>
+  <div id="agora_local" style="width:1280px;height:720px;"></div>
+  <div id="agora_remote" style="width:1280px;height:720px;"></div>
+  <script language="javascript">
+  var client, localStream, remoteStream;
+  
+  client = AgoraRTC.createClient({mode: 'live', codec:'h264'});
+  
+  client.init(app_id, function () {
+    client.join("", "demo", null, function(uid) {
+      localStream = AgoraRTC.createStream({streamID: uid, audio: true, video:true, screen: false});
+      localStream.setVideoProfile("720p");
+      localStream.init(function() {
+        client.publish(localStream, function (err) {});
+        localStream.play("agora_local");
+      }, function (err) {});
+  
+    }, function(err) {});
+  }, function (err) {});
+  
+  client.on('stream-added', function (evt) {
+    var stream = evt.stream;
+    client.subscribe(stream, function (err) {});
+  });
+  
+  client.on('stream-subscribed', function (evt) {
+    remoteStream = evt.stream;
+    remoteStream.play('agora_remote');
+  });
+  
+  function startAudioMixing(){
+    localStream.startAudioMixing({filePath:"/path/to/file.mp3",cycle:1,playTime:0,loop:false,replace:false},function (err) {
+      console.log("audiomix err:"+err);
+    });
+  }
+  </script>
+</body>
+</html>
